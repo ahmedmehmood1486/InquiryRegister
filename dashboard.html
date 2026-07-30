@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Database Inquiry System - Dashboard</title>
+
+<link rel="icon" href="data:,">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+
+body{
+
+display:flex;
+background:#000;
+color:white;
+
+}
+
+
+/* SIDEBAR */
+
+.sidebar{
+
+width:250px;
+height:100vh;
+background:#111;
+padding:20px;
+border-right:2px solid #FFD700;
+box-shadow:0 0 20px #FFD700;
+
+}
+
+
+.sidebar h2{
+
+text-align:center;
+color:#FFD700;
+margin-bottom:30px;
+
+}
+
+
+.sidebar a{
+
+display:block;
+color:white;
+text-decoration:none;
+padding:12px;
+margin:10px 0;
+border-radius:8px;
+
+}
+
+
+.sidebar a:hover{
+
+background:#FFD700;
+color:black;
+
+}
+
+
+
+/* MAIN */
+
+.main{
+
+flex:1;
+padding:20px;
+
+}
+
+
+
+/* TOPBAR */
+
+.topbar{
+
+background:#111;
+padding:15px;
+border-radius:10px;
+border:1px solid #FFD700;
+
+display:flex;
+justify-content:space-between;
+align-items:center;
+
+}
+
+
+.topbar h2{
+
+color:#FFD700;
+
+}
+
+
+.logout{
+
+background:#FFD700;
+color:black;
+border:none;
+
+padding:10px 18px;
+
+border-radius:6px;
+
+cursor:pointer;
+
+font-weight:bold;
+
+}
+
+
+
+/* CARDS */
+
+.cards{
+
+margin-top:25px;
+
+display:grid;
+
+grid-template-columns:repeat(4,1fr);
+
+gap:20px;
+
+}
+
+
+
+.card{
+
+background:#111;
+
+padding:25px;
+
+text-align:center;
+
+border-radius:10px;
+
+border:1px solid #FFD700;
+
+}
+
+
+
+.card h3{
+
+color:#FFD700;
+
+margin-bottom:15px;
+
+}
+
+
+
+.card p{
+
+font-size:35px;
+
+font-weight:bold;
+
+}
+
+
+
+/* TABLE */
+
+.table-box{
+
+margin-top:30px;
+
+background:#111;
+
+padding:20px;
+
+border-radius:10px;
+
+border:1px solid #FFD700;
+
+}
+
+
+.table-box h2{
+
+color:#FFD700;
+
+}
+
+
+
+table{
+
+width:100%;
+
+margin-top:15px;
+
+border-collapse:collapse;
+
+}
+
+
+
+th{
+
+background:#FFD700;
+
+color:black;
+
+padding:12px;
+
+}
+
+
+
+td{
+
+padding:12px;
+
+border-bottom:1px solid #444;
+
+}
+
+
+
+@media(max-width:900px){
+
+.cards{
+
+grid-template-columns:repeat(2,1fr);
+
+}
+
+}
+
+
+</style>
+
+
+</head>
+
+
+
+<body>
+
+
+<div class="sidebar">
+
+<h2>
+⚡ Inquiry System
+</h2>
+
+
+<a href="#">Dashboard</a>
+<a href="companies.html">Companies</a>
+<a href="inquiries.html">Inquiries</a>
+<a href="users.html">Users</a>
+<a href="#">Profile</a>
+<a href="#">Settings</a>
+
+
+</div>
+
+
+
+
+
+<div class="main">
+
+
+<div class="topbar">
+
+
+<h2>
+Dashboard
+</h2>
+
+
+<div>
+
+<span id="userEmail">
+Loading...
+</span>
+
+
+<button class="logout" onclick="logout()">
+Logout
+</button>
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+<div class="cards">
+
+
+<div class="card">
+
+<h3>Total Companies</h3>
+
+<p id="companyCount">0</p>
+
+</div>
+
+
+
+<div class="card">
+
+<h3>Total Inquiries</h3>
+
+<p id="inquiryCount">0</p>
+
+</div>
+
+
+
+<div class="card">
+
+<h3>Pending</h3>
+
+<p id="pendingCount">0</p>
+
+</div>
+
+
+
+<div class="card">
+
+<h3>Completed</h3>
+
+<p id="completedCount">0</p>
+
+</div>
+
+
+</div>
+
+
+
+
+
+
+<div class="table-box">
+
+
+<h2>
+Recent Inquiries
+</h2>
+
+
+<table>
+
+
+<thead>
+
+<tr>
+
+<th>ID</th>
+
+<th>Company</th>
+
+<th>Status</th>
+
+<th>Date</th>
+
+</tr>
+
+</thead>
+
+
+<tbody id="inquiryTable">
+
+</tbody>
+
+
+</table>
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+
+
+
+<script>
+
+
+// =============================
+// SUPABASE CONNECTION
+// =============================
+
+
+const SUPABASE_URL =
+"https://izztjdcxtblqklndxfve.supabase.co";
+
+
+const SUPABASE_KEY =
+"sb_publishable_zO2B32Y2yQuysYaZFzjDmA_LTNBbRCQ";
+
+
+
+const supabaseClient =
+window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
+
+
+console.log("Dashboard Supabase Connected");
+
+
+
+
+
+// =============================
+// LOAD USER
+// =============================
+
+
+async function loadUser(){
+
+
+const {data,error} =
+await supabaseClient.auth.getUser();
+
+
+
+if(error || !data.user){
+
+
+window.location.href="index.html";
+
+return;
+
+}
+
+
+
+document.getElementById("userEmail").innerText =
+data.user.email;
+
+
+}
+
+
+
+loadUser();
+
+
+
+
+
+// =============================
+// LOAD COMPANIES
+// =============================
+
+
+async function loadCompanies(){
+
+
+const {count,error} =
+
+await supabaseClient
+
+.from("companies")
+
+.select("*",{count:"exact",head:true});
+
+
+
+if(error){
+
+console.log("Companies Error:",error.message);
+
+return;
+
+}
+
+
+
+document.getElementById("companyCount").innerText =
+count || 0;
+
+
+}
+
+
+loadCompanies();
+
+
+
+
+
+// =============================
+// LOAD INQUIRIES
+// =============================
+
+
+async function loadInquiries(){
+
+
+const {data,error}=
+
+await supabaseClient
+
+.from("inquiries")
+
+.select("*")
+
+.order("created_at",{ascending:false});
+
+
+
+if(error){
+
+console.log("Inquiry Error:",error.message);
+
+return;
+
+}
+
+
+
+document.getElementById("inquiryCount").innerText =
+data.length;
+
+
+
+let pending = 0;
+
+let completed = 0;
+
+let rows = "";
+
+
+
+data.slice(0,5).forEach(item=>{
+
+
+if(item.status === "Pending"){
+
+pending++;
+
+}
+
+
+
+if(item.status === "Completed"){
+
+completed++;
+
+}
+
+
+
+rows += `
+
+<tr>
+
+<td>${item.id ?? "-"}</td>
+
+<td>${item.company_name ?? "-"}</td>
+
+<td>${item.status ?? "-"}</td>
+
+<td>
+${item.created_at 
+? new Date(item.created_at).toLocaleDateString()
+: "-"
+}
+</td>
+
+</tr>
+
+`;
+
+
+});
+
+
+
+document.getElementById("pendingCount").innerText =
+pending;
+
+
+
+document.getElementById("completedCount").innerText =
+completed;
+
+
+
+document.getElementById("inquiryTable").innerHTML =
+rows;
+
+
+}
+
+
+
+loadInquiries();
+
+
+
+
+
+// =============================
+// LOGOUT
+// =============================
+
+
+async function logout(){
+
+
+await supabaseClient.auth.signOut();
+
+
+window.location.href="index.html";
+
+
+}
+
+
+
+</script>
+
+
+</body>
+
+</html>

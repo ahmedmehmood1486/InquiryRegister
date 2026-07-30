@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Inquiry Management</title>
+
+<link rel="icon" href="data:,">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+background:#000;
+color:#fff;
+display:flex;
+min-height:100vh;
+overflow-x:hidden;
+}
+
+
+/* ===========================
+SIDEBAR
+=========================== */
+
+.sidebar{
+
+width:250px;
+background:#111;
+border-right:2px solid #FFD700;
+box-shadow:0 0 20px rgba(255,215,0,.35);
+padding:20px;
+position:fixed;
+left:0;
+top:0;
+bottom:0;
+
+}
+
+.sidebar h2{
+
+text-align:center;
+margin-bottom:30px;
+color:#FFD700;
+
+}
+
+.sidebar a{
+
+display:block;
+padding:14px;
+margin-bottom:10px;
+text-decoration:none;
+color:#fff;
+border-radius:8px;
+transition:.3s;
+
+}
+
+.sidebar a:hover{
+
+background:#FFD700;
+color:#000;
+
+}
+
+.sidebar a.active{
+
+background:#FFD700;
+color:#000;
+font-weight:bold;
+
+}
+
+
+/* ===========================
+MAIN
+=========================== */
+
+.main{
+
+margin-left:250px;
+width:calc(100% - 250px);
+padding:25px;
+
+}
+
+
+/* ===========================
+TOPBAR
+=========================== */
+
+.topbar{
+
+background:#111;
+padding:20px;
+border-radius:10px;
+border:1px solid #FFD700;
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:25px;
+
+}
+
+.topbar h2{
+
+color:#FFD700;
+
+}
+
+.topbar span{
+
+font-size:14px;
+color:#ccc;
+
+}
+
+
+/* ===========================
+CARDS
+=========================== */
+
+.card{
+
+background:#111;
+border:1px solid #FFD700;
+border-radius:10px;
+padding:20px;
+margin-bottom:25px;
+
+}
+
+.card h3{
+
+color:#FFD700;
+margin-bottom:20px;
+
+}
+
+
+/* ===========================
+GRID
+=========================== */
+
+.form-grid{
+
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:18px;
+
+}
+
+.full-width{
+
+grid-column:1 / -1;
+
+}
+
+
+/* ===========================
+INPUTS
+=========================== */
+
+input,
+select,
+textarea{
+
+width:100%;
+padding:12px;
+background:#000;
+border:1px solid #FFD700;
+border-radius:8px;
+color:#fff;
+font-size:15px;
+
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+
+outline:none;
+box-shadow:0 0 10px rgba(255,215,0,.5);
+
+}
+
+textarea{
+
+height:110px;
+resize:vertical;
+
+}
+
+label{
+
+display:block;
+margin-bottom:8px;
+font-weight:bold;
+color:#FFD700;
+
+}
+
+
+/* ===========================
+BUTTONS
+=========================== */
+
+button{
+
+padding:12px 24px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-weight:bold;
+transition:.3s;
+
+}
+
+.btn-save{
+
+background:#FFD700;
+color:#000;
+
+}
+
+.btn-save:hover{
+
+background:#ffe75c;
+
+}
+
+.btn-delete{
+
+background:#d32f2f;
+color:#fff;
+
+}
+
+.btn-delete:hover{
+
+background:#ff5252;
+
+}
+
+
+/* ===========================
+TABLE
+=========================== */
+
+.table-container{
+
+overflow-x:auto;
+
+}
+
+table{
+
+width:100%;
+border-collapse:collapse;
+
+}
+
+th{
+
+background:#FFD700;
+color:#000;
+padding:14px;
+text-align:center;
+
+}
+
+td{
+
+padding:12px;
+text-align:center;
+border-bottom:1px solid #333;
+
+}
+
+tr:hover{
+
+background:#1a1a1a;
+
+}
+
+
+/* ===========================
+NOTIFICATION
+=========================== */
+
+.notification{
+
+display:none;
+background:#7a0000;
+color:#fff;
+padding:15px;
+border-radius:8px;
+margin-bottom:20px;
+border-left:5px solid red;
+
+}
+
+
+/* ===========================
+RESPONSIVE
+=========================== */
+
+@media(max-width:900px){
+
+.sidebar{
+
+width:100%;
+height:auto;
+position:relative;
+
+}
+
+.main{
+
+margin-left:0;
+width:100%;
+
+}
+
+.form-grid{
+
+grid-template-columns:1fr;
+
+}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="sidebar">
+
+<h2>⚡ Inquiry System</h2>
+
+<a href="dashboard.html">Dashboard</a>
+
+<a href="companies.html">Companies</a>
+
+<a href="inquiries.html" class="active">Inquiries</a>
+
+<a href="#">Users</a>
+
+<a href="#">Profile</a>
+
+<a href="#">Settings</a>
+
+</div>
+
+<div class="main">
+
+<div class="topbar">
+
+<h2>Inquiry Management</h2>
+
+<span id="loggedUser"></span>
+
+</div>
+
+<div
+class="notification"
+id="followupNotification">
+
+</div>
+
+<!-- ===========================
+ADD NEW INQUIRY
+=========================== -->
+
+<div class="card">
+
+<h3>Add New Inquiry</h3>
+
+<div class="form-grid">
+
+<div>
+
+<label>Customer Name</label>
+
+<input
+type="text"
+id="customerName"
+placeholder="Enter customer name">
+
+</div>
+
+
+
+<div>
+
+<label>Phone Number</label>
+
+<input
+type="text"
+id="phone"
+placeholder="03XXXXXXXXX">
+
+</div>
+
+
+
+<div>
+
+<label>Email Address</label>
+
+<input
+type="email"
+id="email"
+placeholder="customer@email.com">
+
+</div>
+
+
+
+<div>
+
+<label>Source</label>
+
+<select id="source">
+
+<option value="">Select Source</option>
+
+<option value="Whatsapp">Whatsapp</option>
+
+<option value="Call">Call</option>
+
+<option value="Old Customer">Old Customer</option>
+
+<option value="Other">Other</option>
+
+</select>
+
+</div>
+
+
+
+<div>
+
+<label>Destination</label>
+
+<input
+type="text"
+id="destination"
+placeholder="Turkey, Dubai, Saudi Arabia etc.">
+
+</div>
+
+
+
+<div>
+
+<label>Converted</label>
+
+<select
+id="converted"
+onchange="toggleReason()">
+
+<option value="No">No</option>
+
+<option value="Yes">Yes</option>
+
+</select>
+
+</div>
+
+
+
+<div
+id="reasonDiv">
+
+<label>Reason (If Not Converted)</label>
+
+<input
+type="text"
+id="noReason"
+placeholder="Reason for not converting">
+
+</div>
+
+
+
+<div>
+
+<label>Follow-up Date</label>
+
+<input
+type="date"
+id="followUp">
+
+</div>
+
+
+
+<div class="full-width">
+
+<label>Additional Remarks</label>
+
+<textarea
+id="remarks"
+placeholder="Enter additional remarks..."></textarea>
+
+</div>
+
+
+
+<div class="full-width">
+
+<button
+class="btn-save"
+onclick="addInquiry()">
+
+Save Inquiry
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<!-- ===========================
+INQUIRY LIST
+=========================== -->
+
+<div class="card">
+
+<h3>Inquiry List</h3>
+
+<div class="table-container">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Inquiry Number</th>
+
+<th>Customer Name</th>
+
+<th>Phone</th>
+
+<th>Source</th>
+
+<th>Destination</th>
+
+<th>Converted</th>
+
+<th>Follow Up</th>
+
+<th>Action</th>
+
+</tr>
+
+</thead>
+
+<tbody id="inquiryTable">
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+
+
+<p
+id="message"
+style="color:#FFD700;text-align:center;margin-top:15px;">
+
+</p>
+
+
+
+<!-- Part 2 (JavaScript) will be added here -->
+
+<script>
+
+// ======================================
+// SUPABASE CONFIGURATION
+// ======================================
+
+const SUPABASE_URL =
+"https://izztjdcxtblqklndxfve.supabase.co";
+
+const SUPABASE_KEY =
+"YOUR_SUPABASE_ANON_KEY";
+
+const supabaseClient =
+supabase.createClient(
+SUPABASE_URL,
+SUPABASE_KEY
+);
+
+
+// ======================================
+// CHECK LOGIN
+// ======================================
+
+let currentUser = null;
+let currentCompanyId = null;
+
+async function checkUser(){
+
+const {data,error} =
+await supabaseClient.auth.getUser();
+
+console.log("User Data:", data);
+console.log("Error:", error);
+
+if(error){
+
+console.log(error);
+return;
+
+}
+
+if(!data.user){
+
+alert("No logged in user found.");
+return;
+
+}
+
+currentUser = data.user;
+
+document.getElementById("loggedUser").innerHTML =
+currentUser.email;
+
+await loadCompany();
+await loadInquiries();
+await loadTodayFollowups();
+
+}
+
+checkUser();
+
+
+// ======================================
+// LOAD USER COMPANY
+// ======================================
+
+async function loadCompany(){
+
+const {data,error} =
+await supabaseClient
+
+.from("profiles")
+
+.select("company_id")
+
+.eq("id",currentUser.id)
+
+.single();
+
+if(error){
+
+alert(error.message);
+return;
+
+}
+
+currentCompanyId = data.company_id;
+
+}
+
+
+// ======================================
+// SHOW / HIDE REASON
+// ======================================
+
+function toggleReason(){
+
+const converted =
+document.getElementById("converted").value;
+
+const reasonDiv =
+document.getElementById("reasonDiv");
+
+if(converted==="No"){
+
+reasonDiv.style.display="block";
+
+}else{
+
+reasonDiv.style.display="none";
+
+document.getElementById("noReason").value="";
+
+}
+
+}
+
+toggleReason();
+
+
+// ======================================
+// ADD INQUIRY
+// ======================================
+
+async function addInquiry(){
+
+if(currentCompanyId===null){
+
+alert("Company not found.");
+return;
+
+}
+
+const inquiry={
+
+company_id:currentCompanyId,
+
+customer_name:
+document.getElementById("customerName").value.trim(),
+
+phone:
+document.getElementById("phone").value.trim(),
+
+email:
+document.getElementById("email").value.trim(),
+
+source:
+document.getElementById("source").value,
+
+destination:
+document.getElementById("destination").value.trim(),
+
+converted:
+document.getElementById("converted").value==="Yes",
+
+follow_up:
+document.getElementById("followUp").value,
+
+no_reason:
+document.getElementById("noReason").value.trim(),
+
+additional_remarks:
+document.getElementById("remarks").value.trim()
+
+};
+
+if(inquiry.customer_name===""){
+
+alert("Enter customer name.");
+return;
+
+}
+
+const {error}=
+
+await supabaseClient
+
+.from("inquiries")
+
+.insert(inquiry);
+
+if(error){
+
+alert(error.message);
+return;
+
+}
+
+document.getElementById("message").innerHTML =
+"Inquiry saved successfully.";
+
+clearForm();
+
+loadInquiries();
+
+loadTodayFollowups();
+
+}
+// ======================================
+// LOAD INQUIRIES
+// ======================================
+
+async function loadInquiries(){
+
+const {data,error}=
+
+await supabaseClient
+
+.from("inquiries")
+
+.select("*")
+
+.eq("company_id",currentCompanyId)
+
+.order("created_at",{ascending:false});
+
+if(error){
+
+alert(error.message);
+return;
+
+}
+
+let rows="";
+
+data.forEach(item=>{
+
+rows += `
+
+<tr>
+
+<td>${item.inquiry_number}</td>
+
+<td>${item.customer_name ?? ""}</td>
+
+<td>${item.phone ?? ""}</td>
+
+<td>${item.source ?? ""}</td>
+
+<td>${item.destination ?? ""}</td>
+
+<td>${item.converted ? "Yes" : "No"}</td>
+
+<td>
+
+${item.follow_up
+? new Date(item.follow_up).toLocaleDateString()
+: ""}
+
+</td>
+
+<td>
+
+<button
+class="btn-delete"
+onclick="deleteInquiry('${item.id}')">
+
+Delete
+
+</button>
+
+</td>
+
+</tr>
+
+`;
+
+});
+
+document.getElementById("inquiryTable").innerHTML=rows;
+
+}
+
+
+
+// ======================================
+// DELETE INQUIRY
+// ======================================
+
+async function deleteInquiry(id){
+
+if(!confirm("Delete this inquiry?")){
+
+return;
+
+}
+
+const {error}=
+
+await supabaseClient
+
+.from("inquiries")
+
+.delete()
+
+.eq("id",id);
+
+if(error){
+
+alert(error.message);
+return;
+
+}
+
+loadInquiries();
+
+loadTodayFollowups();
+
+}
+
+
+
+// ======================================
+// TODAY FOLLOW UPS
+// ======================================
+
+async function loadTodayFollowups(){
+
+const today=new Date().toISOString().split("T")[0];
+
+const {data,error}=
+
+await supabaseClient
+
+.from("inquiries")
+
+.select("inquiry_number,customer_name,follow_up")
+
+.eq("company_id",currentCompanyId)
+
+.eq("follow_up",today);
+
+if(error){
+
+return;
+
+}
+
+const box=document.getElementById("followupNotification");
+
+if(data.length===0){
+
+box.style.display="none";
+
+return;
+
+}
+
+let html="<strong>Today's Follow-ups</strong><br><br>";
+
+data.forEach(item=>{
+
+html += `
+
+📞 ${item.customer_name}
+
+(${item.inquiry_number})
+
+<br>
+
+`;
+
+});
+
+box.innerHTML=html;
+
+box.style.display="block";
+
+}
+
+
+
+// ======================================
+// CLEAR FORM
+// ======================================
+
+function clearForm(){
+
+document.getElementById("customerName").value="";
+
+document.getElementById("phone").value="";
+
+document.getElementById("email").value="";
+
+document.getElementById("source").selectedIndex=0;
+
+document.getElementById("destination").value="";
+
+document.getElementById("converted").value="No";
+
+document.getElementById("followUp").value="";
+
+document.getElementById("noReason").value="";
+
+document.getElementById("remarks").value="";
+
+toggleReason();
+
+}
+
+</script>
+
+</body>
+
+</html>

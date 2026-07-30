@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Database Inquiry System - Login</title>
+
+<link rel="icon" href="data:,">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+<style>
+
+* {
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+
+body {
+
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#000;
+
+}
+
+
+.login-box {
+
+    width:380px;
+
+    background:#111;
+
+    padding:40px;
+
+    border-radius:15px;
+
+    border:2px solid #FFD700;
+
+    box-shadow:0 0 25px #FFD700;
+
+}
+
+
+
+h2 {
+
+    text-align:center;
+
+    color:#FFD700;
+
+    margin-bottom:30px;
+
+    font-size:28px;
+
+}
+
+
+
+input {
+
+    width:100%;
+
+    padding:14px;
+
+    margin:12px 0;
+
+    background:#000;
+
+    color:white;
+
+    border:1px solid #FFD700;
+
+    border-radius:8px;
+
+    outline:none;
+
+}
+
+
+
+input::placeholder {
+
+    color:#aaa;
+
+}
+
+
+
+/* Password Container */
+
+.password-box {
+
+    position:relative;
+
+}
+
+
+
+.password-box input {
+
+    padding-right:50px;
+
+}
+
+
+
+.show-password {
+
+    position:absolute;
+
+    right:15px;
+
+    top:25px;
+
+    cursor:pointer;
+
+    color:#FFD700;
+
+    font-size:20px;
+
+}
+
+
+
+button {
+
+    width:100%;
+
+    padding:14px;
+
+    margin-top:20px;
+
+    background:#FFD700;
+
+    color:black;
+
+    border:none;
+
+    border-radius:8px;
+
+    font-size:17px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+}
+
+
+
+button:hover {
+
+    background:#ffea70;
+
+}
+
+
+
+#message {
+
+    text-align:center;
+
+    margin-top:20px;
+
+    color:#FFD700;
+
+}
+
+
+</style>
+
+
+</head>
+
+
+
+<body>
+
+
+<div class="login-box">
+
+
+<h2>
+⚡ Inquiry System
+</h2>
+
+
+
+<input 
+type="email"
+id="email"
+placeholder="Email Address">
+
+
+
+<div class="password-box">
+
+
+<input 
+type="password"
+id="password"
+placeholder="Password">
+
+
+
+<span 
+class="show-password"
+onclick="togglePassword()">
+
+👁
+
+</span>
+
+
+</div>
+
+
+
+
+<button onclick="login()">
+
+LOGIN
+
+</button>
+
+
+
+
+<p id="message"></p>
+
+
+
+</div>
+
+
+
+
+
+
+<script>
+
+
+// ===============================
+// SUPABASE CONFIGURATION
+// ===============================
+
+
+const SUPABASE_URL = 
+"https://izztjdcxtblqklndxfve.supabase.co";
+
+
+const SUPABASE_KEY = 
+"sb_publishable_zO2B32Y2yQuysYaZFzjDmA_LTNBbRCQ";
+
+
+
+const supabaseClient = supabase.createClient(
+
+    SUPABASE_URL,
+
+    SUPABASE_KEY
+
+);
+
+
+
+console.log("Supabase Initialized");
+
+
+
+
+
+// ===============================
+// SHOW / HIDE PASSWORD
+// ===============================
+
+
+function togglePassword(){
+
+
+    const password =
+    document.getElementById("password");
+
+
+
+    if(password.type === "password"){
+
+
+        password.type = "text";
+
+
+    }
+
+    else{
+
+
+        password.type = "password";
+
+
+    }
+
+
+}
+
+
+
+
+
+// ===============================
+// LOGIN FUNCTION
+// ===============================
+
+
+async function login(){
+
+
+    const email =
+    document.getElementById("email").value.trim();
+
+
+
+    const password =
+    document.getElementById("password").value;
+
+
+
+    const message =
+    document.getElementById("message");
+
+
+
+    if(!email || !password){
+
+
+        message.style.color="red";
+
+        message.innerHTML =
+        "Please enter email and password";
+
+
+        return;
+
+    }
+
+
+
+    message.style.color="#FFD700";
+
+    message.innerHTML =
+    "Checking login...";
+
+
+
+    try{
+
+
+        const {data,error} =
+
+        await supabaseClient.auth.signInWithPassword({
+
+
+            email:email,
+
+
+            password:password
+
+
+        });
+
+
+
+
+        if(error){
+
+
+            message.style.color="red";
+
+
+            message.innerHTML =
+            error.message;
+
+
+            console.log(error);
+
+
+            return;
+
+
+        }
+
+
+
+
+        message.style.color="lime";
+
+
+        message.innerHTML =
+        "Login Successful";
+
+
+
+        console.log("Logged in user:",data.user);
+
+
+
+
+        setTimeout(()=>{
+
+
+            window.location.href =
+            "dashboard.html";
+
+
+
+        },1000);
+
+
+
+    }
+
+
+    catch(err){
+
+
+        message.style.color="red";
+
+
+        message.innerHTML =
+        "Connection Error";
+
+
+        console.log(err);
+
+
+    }
+
+
+
+}
+
+
+
+</script>
+
+
+</body>
+
+</html>
